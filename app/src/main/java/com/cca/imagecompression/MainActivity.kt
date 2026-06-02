@@ -668,14 +668,21 @@ class MainActivity : AppCompatActivity() {
         }
         try {
             val lastSegment = uri.lastPathSegment
-            if (!lastSegment.isNullOrEmpty() && lastSegment.all { it.isDigit() }) {
-                val imageId = lastSegment.toLong()
-                val realUri = android.content.ContentUris.withAppendedId(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    imageId
-                )
-                val time = getMediaStoreDateTaken(realUri)
-                if (time > 0) return time
+            if (!lastSegment.isNullOrEmpty()) {
+                val idStr = if (lastSegment.contains(":")) {
+                    lastSegment.substringAfterLast(":")
+                } else {
+                    lastSegment
+                }
+                if (idStr.all { it.isDigit() }) {
+                    val imageId = idStr.toLong()
+                    val realUri = android.content.ContentUris.withAppendedId(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        imageId
+                    )
+                    val time = getMediaStoreDateTaken(realUri)
+                    if (time > 0) return time
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -806,18 +813,25 @@ class MainActivity : AppCompatActivity() {
         // 1. 优先尝试通过将 URI 的末尾数字 ID 映射回真实的 MediaStore 外部媒体库路径，查询该图片在相册数据库中的 DISPLAY_NAME
         try {
             val lastSegment = uri.lastPathSegment
-            if (!lastSegment.isNullOrEmpty() && lastSegment.all { it.isDigit() }) {
-                val imageId = lastSegment.toLong()
-                val realUri = android.content.ContentUris.withAppendedId(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    imageId
-                )
-                val projection = arrayOf(MediaStore.Images.Media.DISPLAY_NAME)
-                contentResolver.query(realUri, projection, null, null, null)?.use { cursor ->
-                    if (cursor.moveToFirst()) {
-                        val index = cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
-                        if (index != -1) {
-                            result = cursor.getString(index)
+            if (!lastSegment.isNullOrEmpty()) {
+                val idStr = if (lastSegment.contains(":")) {
+                    lastSegment.substringAfterLast(":")
+                } else {
+                    lastSegment
+                }
+                if (idStr.all { it.isDigit() }) {
+                    val imageId = idStr.toLong()
+                    val realUri = android.content.ContentUris.withAppendedId(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        imageId
+                    )
+                    val projection = arrayOf(MediaStore.Images.Media.DISPLAY_NAME)
+                    contentResolver.query(realUri, projection, null, null, null)?.use { cursor ->
+                        if (cursor.moveToFirst()) {
+                            val index = cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
+                            if (index != -1) {
+                                result = cursor.getString(index)
+                            }
                         }
                     }
                 }
@@ -919,12 +933,19 @@ class MainActivity : AppCompatActivity() {
             var targetUri = sourceUri
             try {
                 val lastSegment = sourceUri.lastPathSegment
-                if (!lastSegment.isNullOrEmpty() && lastSegment.all { it.isDigit() }) {
-                    val imageId = lastSegment.toLong()
-                    targetUri = android.content.ContentUris.withAppendedId(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        imageId
-                    )
+                if (!lastSegment.isNullOrEmpty()) {
+                    val idStr = if (lastSegment.contains(":")) {
+                        lastSegment.substringAfterLast(":")
+                    } else {
+                        lastSegment
+                    }
+                    if (idStr.all { it.isDigit() }) {
+                        val imageId = idStr.toLong()
+                        targetUri = android.content.ContentUris.withAppendedId(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            imageId
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 // 忽略
