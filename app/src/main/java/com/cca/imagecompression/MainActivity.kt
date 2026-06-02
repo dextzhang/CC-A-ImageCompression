@@ -343,32 +343,42 @@ class MainActivity : AppCompatActivity() {
         val keepExif = swKeepExif.isChecked
 
         Thread {
-            for (i in 0 until imageList.size) {
-                val item = imageList[i]
-                item.status = 1
-                runOnUiThread { adapter.notifyItemChanged(i) }
+            try {
+                for (i in 0 until imageList.size) {
+                    val item = imageList[i]
+                    item.status = 1
+                    runOnUiThread { adapter.notifyItemChanged(i) }
 
-                val success = compressSingleTemp(item, quality, scale, keepExif)
-                item.status = if (success) 2 else 3
+                    val success = compressSingleTemp(item, quality, scale, keepExif)
+                    item.status = if (success) 2 else 3
 
-                val currentProgress = i + 1
-                val percent = (currentProgress.toFloat() / imageList.size.toFloat() * 100).toInt()
+                    val currentProgress = i + 1
+                    val percent = (currentProgress.toFloat() / imageList.size.toFloat() * 100).toInt()
+
+                    runOnUiThread {
+                        adapter.notifyItemChanged(i)
+                        pbBatchProgress.progress = currentProgress
+                        txtBatchProgressLabel.text = "正在批量压缩 ($currentProgress/${imageList.size})..."
+                        txtBatchPercent.text = "$percent%"
+                    }
+                }
 
                 runOnUiThread {
-                    adapter.notifyItemChanged(i)
-                    pbBatchProgress.progress = currentProgress
-                    txtBatchProgressLabel.text = "正在批量压缩 ($currentProgress/${imageList.size})..."
-                    txtBatchPercent.text = "$percent%"
+                    isProcessing = false
+                    isCompressed = true
+                    setControlsEnabled(true)
+                    updateUIState()
+                    updateSummaryPanel()
+                    Toast.makeText(this, "压缩完成！点击单项可预览对比，或直接点击保存按钮。", Toast.LENGTH_LONG).show()
                 }
-            }
-
-            runOnUiThread {
-                isProcessing = false
-                isCompressed = true
-                setControlsEnabled(true)
-                updateUIState()
-                updateSummaryPanel()
-                Toast.makeText(this, "压缩完成！点击单项可预览对比，或直接点击保存按钮。", Toast.LENGTH_LONG).show()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                runOnUiThread {
+                    isProcessing = false
+                    setControlsEnabled(true)
+                    updateUIState()
+                    Toast.makeText(this, "压缩过程中发生错误: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
         }.start()
     }
@@ -443,37 +453,51 @@ class MainActivity : AppCompatActivity() {
         btnSaveToGallery.isEnabled = false
         btnSaveToGallery.text = "正在保存到系统相册..."
 
+        // 提前在 UI 线程获取 Keep EXIF 的设置值，避免在后台线程访问 UI 控件抛出 CalledFromWrongThreadException
+        val keepExif = swKeepExif.isChecked
+
         Thread {
-            var savedCount = 0
-            for (item in successItems) {
-                val file = item.tempCompressedFile ?: continue
-                if (!file.exists()) continue
+            try {
+                var savedCount = 0
+                for (item in successItems) {
+                    val file = item.tempCompressedFile ?: continue
+                    if (!file.exists()) continue
 
-                // 核心：四维立体还原原图拍摄时间戳
-                val dateTakenMillis = getOriginImageDateTaken(item.uri)
+                    // 核心：四维立体还原原图拍摄时间戳
+                    val dateTakenMillis = getOriginImageDateTaken(item.uri, keepExif)
 
-                // 核心：保留原图文件基本名称，重构为 ${baseName}_compressor.jpg
-                val originalName = getFileName(item.uri)
-                val baseName = if (originalName.contains(".")) {
-                    originalName.substringBeforeLast(".")
-                } else {
-                    originalName
+                    // 核心：保留原图文件基本名称，重构为 ${baseName}_compressor.jpg
+                    val originalName = getFileName(item.uri)
+                    val baseName = if (originalName.contains(".")) {
+                        originalName.substringBeforeLast(".")
+                    } else {
+                        originalName
+                    }
+                    val displayName = "${baseName}_compressor.jpg"
+
+                    // 写入系统相册 (精准日期同步)
+                    val savedUri = saveToGallery(file, displayName, dateTakenMillis)
+                    if (savedUri != null) {
+                        savedCount++
+                    }
                 }
-                val displayName = "${baseName}_compressor.jpg"
 
-                // 写入系统相册 (精准日期同步)
-                val savedUri = saveToGallery(file, displayName, dateTakenMillis)
-                if (savedUri != null) {
-                    savedCount++
+                runOnUiThread {
+                    isProcessing = false
+                    setControlsEnabled(true)
+                    updateUIState()
+                    btnSaveToGallery.text = "💾 保存全部到相册"
+                    Toast.makeText(this, "成功保存 $savedCount 张照片至系统相册，并已同步原始拍摄时间与名称！", Toast.LENGTH_LONG).show()
                 }
-            }
-
-            runOnUiThread {
-                isProcessing = false
-                setControlsEnabled(true)
-                updateUIState()
-                btnSaveToGallery.text = "💾 保存全部到相册"
-                Toast.makeText(this, "成功保存 $savedCount 张照片至系统相册，并已同步原始拍摄时间与名称！", Toast.LENGTH_LONG).show()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                runOnUiThread {
+                    isProcessing = false
+                    setControlsEnabled(true)
+                    updateUIState()
+                    btnSaveToGallery.text = "💾 保存全部到相册"
+                    Toast.makeText(this, "保存过程中发生错误: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
         }.start()
     }
@@ -481,8 +505,7 @@ class MainActivity : AppCompatActivity() {
     /**
      * 四维立体无死角解析图片最真实的拍摄时间点，保障相册时间线正确
      */
-    private fun getOriginImageDateTaken(uri: Uri): Long {
-        val keepExif = swKeepExif.isChecked
+    private fun getOriginImageDateTaken(uri: Uri, keepExif: Boolean): Long {
         if (!keepExif) return System.currentTimeMillis()
 
         // 策略 1：从文件名 (DisplayName) 中用正则匹配提取 yyyyMMdd_HHmmss。
@@ -615,38 +638,42 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveToGallery(file: File, displayName: String, dateTakenMillis: Long): Uri? {
-        val resolver = contentResolver
-        val contentValues = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.DATE_TAKEN, dateTakenMillis)
-            put(MediaStore.Images.Media.DATE_ADDED, dateTakenMillis / 1000)
-            put(MediaStore.Images.Media.DATE_MODIFIED, dateTakenMillis / 1000)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures")
-                put(MediaStore.Images.Media.IS_PENDING, 1)
-            }
-        }
-
-        val imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-        if (imageUri != null) {
-            try {
-                resolver.openOutputStream(imageUri)?.use { outputStream ->
-                    file.inputStream().use { inputStream ->
-                        inputStream.copyTo(outputStream)
-                    }
-                }
-
+        try {
+            val resolver = contentResolver
+            val contentValues = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
+                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                put(MediaStore.Images.Media.DATE_TAKEN, dateTakenMillis)
+                put(MediaStore.Images.Media.DATE_ADDED, dateTakenMillis / 1000)
+                put(MediaStore.Images.Media.DATE_MODIFIED, dateTakenMillis / 1000)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    contentValues.clear()
-                    contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
-                    resolver.update(imageUri, contentValues, null, null)
+                    put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures")
+                    put(MediaStore.Images.Media.IS_PENDING, 1)
                 }
-                return imageUri
-            } catch (e: Exception) {
-                e.printStackTrace()
-                resolver.delete(imageUri, null, null)
             }
+
+            val imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            if (imageUri != null) {
+                try {
+                    resolver.openOutputStream(imageUri)?.use { outputStream ->
+                        file.inputStream().use { inputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        contentValues.clear()
+                        contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+                        resolver.update(imageUri, contentValues, null, null)
+                    }
+                    return imageUri
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    resolver.delete(imageUri, null, null)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return null
     }
@@ -781,6 +808,54 @@ class MainActivity : AppCompatActivity() {
         val units = arrayOf("B", "KB", "MB", "GB")
         val digitGroups = (Math.log10(size.toDouble()) / Math.log10(1024.0)).toInt()
         return DecimalFormat("#,##0.00").format(size / Math.pow(1024.0, digitGroups.toDouble())) + " " + units[digitGroups]
+    }
+
+    private fun copyExifData(sourceUri: Uri, destFile: File) {
+        var sourceStream: InputStream? = null
+        try {
+            sourceStream = contentResolver.openInputStream(sourceUri)
+            if (sourceStream != null) {
+                val sourceExif = ExifInterface(sourceStream)
+                val destExif = ExifInterface(destFile.absolutePath)
+
+                val tagsToCopy = arrayOf(
+                    ExifInterface.TAG_DATETIME,
+                    ExifInterface.TAG_DATETIME_DIGITIZED,
+                    ExifInterface.TAG_DATETIME_ORIGINAL,
+                    ExifInterface.TAG_GPS_DATESTAMP,
+                    ExifInterface.TAG_GPS_TIMESTAMP,
+                    ExifInterface.TAG_GPS_LATITUDE,
+                    ExifInterface.TAG_GPS_LATITUDE_REF,
+                    ExifInterface.TAG_GPS_LONGITUDE,
+                    ExifInterface.TAG_GPS_LONGITUDE_REF,
+                    ExifInterface.TAG_MAKE,
+                    ExifInterface.TAG_MODEL,
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.TAG_SUBSEC_TIME,
+                    ExifInterface.TAG_SUBSEC_TIME_ORIGINAL,
+                    ExifInterface.TAG_SUBSEC_TIME_DIGITIZED,
+                    ExifInterface.TAG_EXPOSURE_TIME,
+                    ExifInterface.TAG_F_NUMBER,
+                    ExifInterface.TAG_ISO_SPEED_RATINGS
+                )
+
+                for (tag in tagsToCopy) {
+                    val value = sourceExif.getAttribute(tag)
+                    if (value != null) {
+                        destExif.setAttribute(tag, value)
+                    }
+                }
+                destExif.saveAttributes()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                sourceStream?.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     override fun onDestroy() {
