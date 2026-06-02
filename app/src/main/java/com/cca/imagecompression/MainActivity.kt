@@ -16,6 +16,7 @@ import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ImageView
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -745,7 +746,7 @@ class MainActivity : AppCompatActivity() {
             result = uri.path
             val cut = result?.lastIndexOf('/')
             if (cut != null && cut != -1) {
-                result = result.substring(cut + 1)
+                result = result?.substring(cut + 1)
             }
         }
         return result ?: "photo.jpg"
