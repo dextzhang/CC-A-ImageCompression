@@ -24,6 +24,10 @@ jobs:
         java-version: '17'
         cache: 'gradle'
 
+    # 关键步骤：在 Actions 虚拟机上全自动寻找、安装并配置好 Android SDK 环境，配置 ANDROID_HOME 变量
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
