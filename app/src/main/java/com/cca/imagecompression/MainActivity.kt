@@ -535,14 +535,14 @@ class MainActivity : AppCompatActivity() {
                     // 核心：四维立体还原原图拍摄时间戳
                     val dateTakenMillis = getOriginImageDateTaken(item.uri, keepExif)
 
-                    // 核心：保留原图文件基本名称，重构为 ${baseName}_compressor.jpg
+                    // 核心：保留原图文件基本名称，重构为 ${baseName}_compressed.jpg
                     val originalName = getFileName(item.uri)
                     val baseName = if (originalName.contains(".")) {
                         originalName.substringBeforeLast(".")
                     } else {
                         originalName
                     }
-                    val displayName = "${baseName}_compressor.jpg"
+                    val displayName = "${baseName}_compressed.jpg"
 
                     // 写入系统相册 (精准日期同步)
                     val savedUri = saveToGallery(file, displayName, dateTakenMillis)
