@@ -196,10 +196,16 @@ class MainActivity : AppCompatActivity() {
         // 选择照片点击
         btnSelect.setOnClickListener {
             try {
-                pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                // 首选使用标准的 ACTION_GET_CONTENT 以获取带完整文件名与元数据的图片 URI，这与 Web 浏览器拉起文件选择器的行为一致
+                val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                    type = "image/*"
+                    putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                }
+                pickMediaLegacy.launch(Intent.createChooser(intent, "选择多张照片"))
             } catch (e: Exception) {
                 e.printStackTrace()
                 try {
+                    // 降级使用 ACTION_PICK
                     val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
                         putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                     }
@@ -207,11 +213,8 @@ class MainActivity : AppCompatActivity() {
                 } catch (ex: Exception) {
                     ex.printStackTrace()
                     try {
-                        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                            type = "image/*"
-                            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                        }
-                        pickMediaLegacy.launch(Intent.createChooser(intent, "选择多张照片"))
+                        // 最后的兼容手段：PhotoPicker
+                        pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     } catch (e3: Exception) {
                         Toast.makeText(this, "无法拉起系统相册选择器: ${e3.message}", Toast.LENGTH_LONG).show()
                     }
@@ -503,9 +506,6 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    /**
-     * 四维立体无死角解析图片最真实的拍摄时间点，保障相册时间线正确
-     */
     private fun getOriginImageDateTaken(uri: Uri, keepExif: Boolean): Long {
         if (!keepExif) return System.currentTimeMillis()
 
@@ -545,8 +545,49 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 策略 4：以上全无时降级以当前系统时间为准
+        // 策略 4：从 Cursor (DocumentsContract 或 MediaStore.DATE_MODIFIED) 中查询文件最近修改时间
+        val lastModified = getFileLastModified(uri)
+        if (lastModified > 0) {
+            return lastModified
+        }
+
+        // 策略 5：以上全无时降级以当前系统时间为准
         return System.currentTimeMillis()
+    }
+
+    private fun getFileLastModified(uri: Uri): Long {
+        // 1. 尝试从 DocumentsContract 中查询最近修改时间
+        try {
+            val projection = arrayOf(android.provider.DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+            contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val index = cursor.getColumnIndex(android.provider.DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+                    if (index != -1) {
+                        val lastModified = cursor.getLong(index)
+                        if (lastModified > 0) return lastModified
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // 忽略
+        }
+
+        // 2. 尝试从 MediaStore 的 DATE_MODIFIED 中查询
+        try {
+            val projection = arrayOf(MediaStore.Images.Media.DATE_MODIFIED)
+            contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val index = cursor.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED)
+                    if (index != -1) {
+                        val lastModifiedSec = cursor.getLong(index)
+                        if (lastModifiedSec > 0) return lastModifiedSec * 1000
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // 忽略
+        }
+        return 0L
     }
 
     private fun parseDateFromFileName(fileName: String): Long? {
