@@ -470,6 +470,7 @@ class MainActivity : AppCompatActivity() {
 
             runOnUiThread {
                 isProcessing = false
+                setControlsEnabled(true)
                 updateUIState()
                 btnSaveToGallery.text = "💾 保存全部到相册"
                 Toast.makeText(this, "成功保存 $savedCount 张照片至系统相册，并已同步原始拍摄时间与名称！", Toast.LENGTH_LONG).show()
