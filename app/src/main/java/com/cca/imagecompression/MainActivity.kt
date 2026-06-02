@@ -11,7 +11,6 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.View
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.SeekBar
@@ -48,13 +47,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txtScaleVal: TextView
     private lateinit var sbQuality: SeekBar
     private lateinit var sbScale: SeekBar
-    
+
     // Preset Buttons
     private lateinit var btnPresetUltra: Button
     private lateinit var btnPresetHigh: Button
     private lateinit var btnPresetStandard: Button
     private lateinit var btnPresetMax: Button
-    
+
     // EXIF Switch
     private lateinit var swKeepExif: SwitchCompat
 
@@ -66,9 +65,9 @@ class MainActivity : AppCompatActivity() {
     private val imageList = ArrayList<CompressedImage>()
     private lateinit var adapter: ImageAdapter
     private var isProcessing = false
-    private var isCompressed = false // 标记是否完成了上一轮压缩
+    private var isCompressed = false
 
-    // 现代多选 PhotoPicker
+    // 现代多选 PhotoPicker 注册选择器
     private val pickMultipleMedia = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
         if (uris != null && uris.isNotEmpty()) {
             addSelectedImages(uris)
@@ -96,7 +95,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 配置全局崩溃捕获，接管所有闪退
+        // 全局未捕获异常捕获
         Thread.setDefaultUncaughtExceptionHandler { _, throwable ->
             try {
                 val intent = Intent(this, CrashActivity::class.java).apply {
@@ -113,7 +112,7 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        // 初始化主工作区
+        // 绑定控件
         layEmptyState = findViewById(R.id.layEmptyState)
         rvImages = findViewById(R.id.rvImages)
         layBatchProgress = findViewById(R.id.layBatchProgress)
@@ -121,37 +120,31 @@ class MainActivity : AppCompatActivity() {
         txtBatchPercent = findViewById(R.id.txtBatchPercent)
         pbBatchProgress = findViewById(R.id.pbBatchProgress)
 
-        // 初始化汇总栏
         layStatsSummary = findViewById(R.id.layStatsSummary)
         txtSummarySavings = findViewById(R.id.txtSummarySavings)
 
-        // 初始化滑块
         txtQualityVal = findViewById(R.id.txtQualityVal)
         txtScaleVal = findViewById(R.id.txtScaleVal)
         sbQuality = findViewById(R.id.sbQuality)
         sbScale = findViewById(R.id.sbScale)
-        
-        // 绑定预设方案按钮
+
         btnPresetUltra = findViewById(R.id.btnPresetUltra)
         btnPresetHigh = findViewById(R.id.btnPresetHigh)
         btnPresetStandard = findViewById(R.id.btnPresetStandard)
         btnPresetMax = findViewById(R.id.btnPresetMax)
-        
-        // EXIF 开关
+
         swKeepExif = findViewById(R.id.swKeepExif)
 
-        // 按钮
         btnSelect = findViewById(R.id.btnSelect)
         btnClear = findViewById(R.id.btnClear)
         btnCompress = findViewById(R.id.btnCompress)
         btnSaveToGallery = findViewById(R.id.btnSaveToGallery)
 
-        // 配置列表与点击监听 (点击已完成项弹窗对比)
+        // 配置列表与点击监听
         rvImages.layoutManager = GridLayoutManager(this, 3)
-        adapter = ImageAdapter(this, imageList, 
+        adapter = ImageAdapter(this, imageList,
             onDeleteClickListener = { deletedPosition ->
                 if (deletedPosition in 0 until imageList.size) {
-                    // 清理临时文件
                     imageList[deletedPosition].tempCompressedFile?.delete()
                     imageList.removeAt(deletedPosition)
                     adapter.notifyItemRemoved(deletedPosition)
@@ -193,7 +186,7 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        // 预设按钮事件绑定
+        // 预设按钮绑定
         btnPresetUltra.setOnClickListener { applyPreset(90, 100) }
         btnPresetHigh.setOnClickListener { applyPreset(80, 80) }
         btnPresetStandard.setOnClickListener { applyPreset(70, 60) }
@@ -237,7 +230,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 绑定两个分开的工作流按钮
         btnCompress.setOnClickListener {
             startBatchCompression()
         }
@@ -258,7 +250,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun resetCompressionState() {
         if (isCompressed) {
-            // 如果参数改变，重置上一轮的压缩结果，让用户能重新开始压缩
             isCompressed = false
             btnSaveToGallery.isEnabled = false
             btnSaveToGallery.backgroundTintList = getColorStateList(android.R.color.darker_gray)
@@ -306,8 +297,7 @@ class MainActivity : AppCompatActivity() {
             btnClear.visibility = View.VISIBLE
             btnCompress.isEnabled = true
             btnCompress.backgroundTintList = getColorStateList(android.R.color.holo_orange_dark)
-            
-            // 只有全部成功压缩过，才可以保存
+
             val allDone = imageList.isNotEmpty() && imageList.all { it.status == 2 }
             if (allDone && isCompressed) {
                 btnSaveToGallery.isEnabled = true
@@ -333,7 +323,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 阶段 1：批量压缩 (不写入系统相册，只写入本地临时缓存目录并预览对比)
+     * 阶段 1：批量压缩临时任务 (仅处理生成应用缓存中的临时文件)
      */
     private fun startBatchCompression() {
         if (imageList.isEmpty() || isProcessing) return
@@ -355,10 +345,9 @@ class MainActivity : AppCompatActivity() {
         Thread {
             for (i in 0 until imageList.size) {
                 val item = imageList[i]
-                item.status = 1 // 压缩中
+                item.status = 1
                 runOnUiThread { adapter.notifyItemChanged(i) }
 
-                // 核心压缩
                 val success = compressSingleTemp(item, quality, scale, keepExif)
                 item.status = if (success) 2 else 3
 
@@ -379,7 +368,7 @@ class MainActivity : AppCompatActivity() {
                 setControlsEnabled(true)
                 updateUIState()
                 updateSummaryPanel()
-                Toast.makeText(this, "压缩完成！点击图片项可查看左右原图对比", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "压缩完成！点击单项可预览对比，或直接点击保存按钮。", Toast.LENGTH_LONG).show()
             }
         }.start()
     }
@@ -401,14 +390,13 @@ class MainActivity : AppCompatActivity() {
             val targetHeight = (originalBitmap.height * scale).toInt()
             scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, targetWidth, targetHeight, true)
 
-            // 写入本地应用私有临时文件
-            val tempFile = File(cacheDir, "temp_compressed_${System.currentTimeMillis()}_${(100..999).random()}.jpg")
+            // 写在缓存目录
+            val tempFile = File(cacheDir, "temp_batch_${System.currentTimeMillis()}_${(100..999).random()}.jpg")
             val outputStream = FileOutputStream(tempFile)
             scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
             outputStream.flush()
             outputStream.close()
 
-            // 如果开启 EXIF，将元数据无损复制入临时文件中
             if (keepExif) {
                 copyExifData(item.uri, tempFile)
             }
@@ -426,9 +414,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * 更新保存前的压缩报告汇总
-     */
     private fun updateSummaryPanel() {
         val allDone = imageList.isNotEmpty() && imageList.all { it.status == 2 }
         if (allDone && isCompressed) {
@@ -447,7 +432,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 阶段 2：批量保存到相册 (在这一阶段，提取时间戳并精准写入系统 MediaStore，保证相册中排在昨天的日期里)
+     * 阶段 2：批量保存到相册 (应用四维时间精确归档与 ${原名}_compressor.jpg 命名规则)
      */
     private fun saveAllToGallery() {
         val successItems = imageList.filter { it.status == 2 && it.tempCompressedFile != null }
@@ -457,8 +442,6 @@ class MainActivity : AppCompatActivity() {
         setControlsEnabled(false)
         btnSaveToGallery.isEnabled = false
         btnSaveToGallery.text = "正在保存到系统相册..."
-        
-        val keepExif = swKeepExif.isChecked
 
         Thread {
             var savedCount = 0
@@ -466,32 +449,19 @@ class MainActivity : AppCompatActivity() {
                 val file = item.tempCompressedFile ?: continue
                 if (!file.exists()) continue
 
-                // 核心：确定原始拍摄时间毫秒值，如果无则降级
-                var dateTakenMillis = System.currentTimeMillis()
-                if (keepExif) {
-                    var exifStream: InputStream? = null
-                    try {
-                        exifStream = contentResolver.openInputStream(item.uri)
-                        if (exifStream != null) {
-                            val exif = ExifInterface(exifStream)
-                            val dateTimeStr = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
-                                              ?: exif.getAttribute(ExifInterface.TAG_DATETIME)
-                            if (!dateTimeStr.isNullOrEmpty()) {
-                                dateTakenMillis = parseExifDateTime(dateTimeStr)
-                            } else {
-                                // 尝试从 MediaStore 获取原图的拍摄时间
-                                dateTakenMillis = getMediaStoreDateTaken(item.uri)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    } finally {
-                        exifStream?.close()
-                    }
-                }
+                // 核心：四维立体还原原图拍摄时间戳
+                val dateTakenMillis = getOriginImageDateTaken(item.uri)
 
-                // 写入系统相册 (携带精确的拍摄时间，相册将精准排在原始拍摄的日期位置)
-                val displayName = "compressed_${System.currentTimeMillis()}_${(100..999).random()}.jpg"
+                // 核心：保留原图文件基本名称，重构为 ${baseName}_compressor.jpg
+                val originalName = getFileName(item.uri)
+                val baseName = if (originalName.contains(".")) {
+                    originalName.substringBeforeLast(".")
+                } else {
+                    originalName
+                }
+                val displayName = "${baseName}_compressor.jpg"
+
+                // 写入系统相册 (精准日期同步)
                 val savedUri = saveToGallery(file, displayName, dateTakenMillis)
                 if (savedUri != null) {
                     savedCount++
@@ -502,9 +472,116 @@ class MainActivity : AppCompatActivity() {
                 isProcessing = false
                 updateUIState()
                 btnSaveToGallery.text = "💾 保存全部到相册"
-                Toast.makeText(this, "成功保存 $savedCount 张照片至系统相册 (已精准同步原始拍摄时间)！", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "成功保存 $savedCount 张照片至系统相册，并已同步原始拍摄时间与名称！", Toast.LENGTH_LONG).show()
             }
         }.start()
+    }
+
+    /**
+     * 四维立体无死角解析图片最真实的拍摄时间点，保障相册时间线正确
+     */
+    private fun getOriginImageDateTaken(uri: Uri): Long {
+        val keepExif = swKeepExif.isChecked
+        if (!keepExif) return System.currentTimeMillis()
+
+        // 策略 1：从文件名 (DisplayName) 中用正则匹配提取 yyyyMMdd_HHmmss。
+        // 如：IMG_20260602_182823 匹配解析出 2026年6月2日18点28分23秒
+        val displayName = getFileName(uri)
+        val fileTime = parseDateFromFileName(displayName)
+        if (fileTime != null && fileTime > 0) {
+            return fileTime
+        }
+
+        // 策略 2：通过 ContentUris 将 PhotoPicker 临时授权 Uri 映射回真实的 MediaStore 路径，直接查询 DATE_TAKEN 属性
+        val mediaStoreTime = getMediaStoreDateTakenWithConversion(uri)
+        if (mediaStoreTime > 0) {
+            return mediaStoreTime
+        }
+
+        // 策略 3：从原图二进制流中，使用 ExifInterface 读取 EXIF 里的 DATETIME_ORIGINAL 属性
+        var exifStream: InputStream? = null
+        try {
+            exifStream = contentResolver.openInputStream(uri)
+            if (exifStream != null) {
+                val exif = ExifInterface(exifStream)
+                val dateTimeStr = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
+                                  ?: exif.getAttribute(ExifInterface.TAG_DATETIME)
+                if (!dateTimeStr.isNullOrEmpty()) {
+                    return parseExifDateTime(dateTimeStr)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                exifStream?.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // 策略 4：以上全无时降级以当前系统时间为准
+        return System.currentTimeMillis()
+    }
+
+    private fun parseDateFromFileName(fileName: String): Long? {
+        try {
+            // 匹配常见的 yyyyMMdd_HHmmss 或者是 yyyy-MM-dd_HHmmss / yyyyMMddHHmmss
+            val regex = Regex("(?i)(?:IMG_|PANO_|VID_)?(\\d{8})_(\\d{6})")
+            var matchResult = regex.find(fileName)
+            if (matchResult != null) {
+                val dateStr = matchResult.groupValues[1]
+                val timeStr = matchResult.groupValues[2]
+                val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+                return sdf.parse("${dateStr}_${timeStr}")?.time
+            }
+
+            val regexWithDashes = Regex("(\\d{4})-(\\d{2})-(\\d{2})[-_](\\d{2})[-_](\\d{2})[-_](\\d{2})")
+            val matchDashes = regexWithDashes.find(fileName)
+            if (matchDashes != null) {
+                val year = matchDashes.groupValues[1]
+                val month = matchDashes.groupValues[2]
+                val day = matchDashes.groupValues[3]
+                val hour = matchDashes.groupValues[4]
+                val min = matchDashes.groupValues[5]
+                val sec = matchDashes.groupValues[6]
+                val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+                return sdf.parse("${year}${month}${day}_${hour}${min}${sec}")?.time
+            }
+            
+            val regexDigits = Regex("(\\d{8})(\\d{6})")
+            val matchDigits = regexDigits.find(fileName)
+            if (matchDigits != null) {
+                val dateStr = matchDigits.groupValues[1]
+                val timeStr = matchDigits.groupValues[2]
+                val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+                return sdf.parse("${dateStr}_${timeStr}")?.time
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
+    private fun getMediaStoreDateTakenWithConversion(uri: Uri): Long {
+        if (uri.toString().contains("media/external/images/media")) {
+            return getMediaStoreDateTaken(uri)
+        }
+        try {
+            val lastSegment = uri.lastPathSegment
+            if (!lastSegment.isNullOrEmpty() && lastSegment.all { it.isDigit() }) {
+                val imageId = lastSegment.toLong()
+                val realUri = android.content.ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    imageId
+                )
+                val time = getMediaStoreDateTaken(realUri)
+                if (time > 0) return time
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return 0L
     }
 
     private fun parseExifDateTime(dateTimeStr: String?): Long {
@@ -533,7 +610,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return System.currentTimeMillis()
+        return 0L
     }
 
     private fun saveToGallery(file: File, displayName: String, dateTakenMillis: Long): Uri? {
@@ -541,7 +618,6 @@ class MainActivity : AppCompatActivity() {
         val contentValues = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            // 写入拍摄和添加时间 (毫秒及秒)
             put(MediaStore.Images.Media.DATE_TAKEN, dateTakenMillis)
             put(MediaStore.Images.Media.DATE_ADDED, dateTakenMillis / 1000)
             put(MediaStore.Images.Media.DATE_MODIFIED, dateTakenMillis / 1000)
@@ -559,7 +635,7 @@ class MainActivity : AppCompatActivity() {
                         inputStream.copyTo(outputStream)
                     }
                 }
-                
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     contentValues.clear()
                     contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
@@ -574,9 +650,6 @@ class MainActivity : AppCompatActivity() {
         return null
     }
 
-    /**
-     * 弹窗对比：左右双列对比大图，限制最大分辨率以防 OOM
-     */
     private fun showCompareDialog(item: CompressedImage) {
         val dialog = android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         dialog.setContentView(R.layout.dialog_compare)
@@ -595,12 +668,11 @@ class MainActivity : AppCompatActivity() {
         val orgSizeStr = formatFileSize(item.originalSize)
         val compSizeStr = formatFileSize(item.compressedSize)
         val savings = ((1 - item.compressedSize.toFloat() / item.originalSize.toFloat()) * 100).toInt()
-        
+
         txtDialogSummary.text = "原始容量: $orgSizeStr -> 压缩后: $compSizeStr (节省了 $savings%)"
         txtDialogOrgLabel.text = "原图预览 ($orgSizeStr)"
         txtDialogCompLabel.text = "压缩后预览 ($compSizeStr)"
 
-        // 采样率下加载原图与压缩图 (800 宽防止 OOM)
         val orgBitmap = loadScaledBitmap(item.uri, 800)
         if (orgBitmap != null) {
             imgDialogOriginal.setImageBitmap(orgBitmap)
@@ -645,7 +717,7 @@ class MainActivity : AppCompatActivity() {
             result = uri.path
             val cut = result?.lastIndexOf('/')
             if (cut != null && cut != -1) {
-                result = result?.substring(cut + 1)
+                result = result.substring(cut + 1)
             }
         }
         return result ?: "photo.jpg"
@@ -708,50 +780,6 @@ class MainActivity : AppCompatActivity() {
         val units = arrayOf("B", "KB", "MB", "GB")
         val digitGroups = (Math.log10(size.toDouble()) / Math.log10(1024.0)).toInt()
         return DecimalFormat("#,##0.00").format(size / Math.pow(1024.0, digitGroups.toDouble())) + " " + units[digitGroups]
-    }
-
-    private fun copyExifData(sourceUri: Uri, destFile: File) {
-        var sourceStream: InputStream? = null
-        try {
-            sourceStream = contentResolver.openInputStream(sourceUri)
-            if (sourceStream != null) {
-                val sourceExif = ExifInterface(sourceStream)
-                val destExif = ExifInterface(destFile.absolutePath)
-
-                val tagsToCopy = arrayOf(
-                    ExifInterface.TAG_DATETIME,
-                    ExifInterface.TAG_DATETIME_DIGITIZED,
-                    ExifInterface.TAG_DATETIME_ORIGINAL,
-                    ExifInterface.TAG_GPS_DATESTAMP,
-                    ExifInterface.TAG_GPS_TIMESTAMP,
-                    ExifInterface.TAG_GPS_LATITUDE,
-                    ExifInterface.TAG_GPS_LATITUDE_REF,
-                    ExifInterface.TAG_GPS_LONGITUDE,
-                    ExifInterface.TAG_GPS_LONGITUDE_REF,
-                    ExifInterface.TAG_MAKE,
-                    ExifInterface.TAG_MODEL,
-                    ExifInterface.TAG_ORIENTATION,
-                    ExifInterface.TAG_SUBSEC_TIME,
-                    ExifInterface.TAG_SUBSEC_TIME_ORIGINAL,
-                    ExifInterface.TAG_SUBSEC_TIME_DIGITIZED,
-                    ExifInterface.TAG_EXPOSURE_TIME,
-                    ExifInterface.TAG_F_NUMBER,
-                    ExifInterface.TAG_ISO_SPEED_RATINGS
-                )
-
-                for (tag in tagsToCopy) {
-                    val value = sourceExif.getAttribute(tag)
-                    if (value != null) {
-                        destExif.setAttribute(tag, value)
-                    }
-                }
-                destExif.saveAttributes()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            sourceStream?.close()
-        }
     }
 
     override fun onDestroy() {
