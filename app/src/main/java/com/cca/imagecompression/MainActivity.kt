@@ -1,5 +1,8 @@
 package com.cca.imagecompression
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
@@ -89,6 +92,60 @@ class MainActivity : AppCompatActivity() {
             }
             if (uris.isNotEmpty()) {
                 addSelectedImages(uris)
+            }
+        }
+    }
+
+    // 动态存储权限请求启动器
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Toast.makeText(this, "权限已授予，正在拉起相册...", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "未授予媒体库读取权限，部分照片可能无法恢复原始文件名与拍摄日期", Toast.LENGTH_LONG).show()
+        }
+        launchImageSelector()
+    }
+
+    private fun checkPermissionAndLaunch() {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
+            launchImageSelector()
+        } else {
+            requestPermissionLauncher.launch(permission)
+        }
+    }
+
+    private fun launchImageSelector() {
+        try {
+            // 首选使用标准的 ACTION_GET_CONTENT 以获取带完整文件名与元数据的图片 URI，这与 Web 浏览器拉起文件选择器的行为一致
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            }
+            pickMediaLegacy.launch(Intent.createChooser(intent, "选择多张照片"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            try {
+                // 降级使用 ACTION_PICK
+                val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                    putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                }
+                pickMediaLegacy.launch(intent)
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                try {
+                    // 最后的兼容手段：PhotoPicker
+                    pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                } catch (e3: Exception) {
+                    Toast.makeText(this, "无法拉起系统相册选择器: ${e3.message}", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -195,31 +252,7 @@ class MainActivity : AppCompatActivity() {
 
         // 选择照片点击
         btnSelect.setOnClickListener {
-            try {
-                // 首选使用标准的 ACTION_GET_CONTENT 以获取带完整文件名与元数据的图片 URI，这与 Web 浏览器拉起文件选择器的行为一致
-                val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                    type = "image/*"
-                    putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                }
-                pickMediaLegacy.launch(Intent.createChooser(intent, "选择多张照片"))
-            } catch (e: Exception) {
-                e.printStackTrace()
-                try {
-                    // 降级使用 ACTION_PICK
-                    val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-                        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                    }
-                    pickMediaLegacy.launch(intent)
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                    try {
-                        // 最后的兼容手段：PhotoPicker
-                        pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    } catch (e3: Exception) {
-                        Toast.makeText(this, "无法拉起系统相册选择器: ${e3.message}", Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
+            checkPermissionAndLaunch()
         }
 
         btnClear.setOnClickListener {
@@ -769,7 +802,32 @@ class MainActivity : AppCompatActivity() {
 
     private fun getFileName(uri: Uri): String {
         var result: String? = null
-        if (uri.scheme == "content") {
+        
+        // 1. 优先尝试通过将 URI 的末尾数字 ID 映射回真实的 MediaStore 外部媒体库路径，查询该图片在相册数据库中的 DISPLAY_NAME
+        try {
+            val lastSegment = uri.lastPathSegment
+            if (!lastSegment.isNullOrEmpty() && lastSegment.all { it.isDigit() }) {
+                val imageId = lastSegment.toLong()
+                val realUri = android.content.ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    imageId
+                )
+                val projection = arrayOf(MediaStore.Images.Media.DISPLAY_NAME)
+                contentResolver.query(realUri, projection, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val index = cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
+                        if (index != -1) {
+                            result = cursor.getString(index)
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // 2. 如果第一步查询失败，降级通过 Cursor 从当前 URI 中直接查询 OpenableColumns.DISPLAY_NAME
+        if (result == null && uri.scheme == "content") {
             try {
                 contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                     if (cursor.moveToFirst()) {
@@ -783,6 +841,8 @@ class MainActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         }
+
+        // 3. 如果依然查询失败，则以 URI 的 Path 最后一截作为文件名
         if (result == null) {
             result = uri.path
             val cut = result?.lastIndexOf('/')
