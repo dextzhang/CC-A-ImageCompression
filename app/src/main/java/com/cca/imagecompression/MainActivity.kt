@@ -915,7 +915,33 @@ class MainActivity : AppCompatActivity() {
     private fun copyExifData(sourceUri: Uri, destFile: File) {
         var sourceStream: InputStream? = null
         try {
-            sourceStream = contentResolver.openInputStream(sourceUri)
+            // 1. 尝试转换为真实的外部 MediaStore URI，因为 setRequireOriginal 必须在标准的 MediaStore URI 上运行才有效
+            var targetUri = sourceUri
+            try {
+                val lastSegment = sourceUri.lastPathSegment
+                if (!lastSegment.isNullOrEmpty() && lastSegment.all { it.isDigit() }) {
+                    val imageId = lastSegment.toLong()
+                    targetUri = android.content.ContentUris.withAppendedId(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        imageId
+                    )
+                }
+            } catch (e: Exception) {
+                // 忽略
+            }
+
+            // 2. 对于 Android 10 (Q) 及以上，必须通过 MediaStore.setRequireOriginal 强制要求无损原始流，否则系统会自动剥离 GPS 等隐私 EXIF 信息！
+            val requireOriginalUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                try {
+                    MediaStore.setRequireOriginal(targetUri)
+                } catch (e: Exception) {
+                    targetUri
+                }
+            } else {
+                targetUri
+            }
+
+            sourceStream = contentResolver.openInputStream(requireOriginalUri)
             if (sourceStream != null) {
                 val sourceExif = ExifInterface(sourceStream)
                 val destExif = ExifInterface(destFile.absolutePath)
@@ -930,6 +956,9 @@ class MainActivity : AppCompatActivity() {
                     ExifInterface.TAG_GPS_LATITUDE_REF,
                     ExifInterface.TAG_GPS_LONGITUDE,
                     ExifInterface.TAG_GPS_LONGITUDE_REF,
+                    ExifInterface.TAG_GPS_ALTITUDE,
+                    ExifInterface.TAG_GPS_ALTITUDE_REF,
+                    ExifInterface.TAG_GPS_PROCESSING_METHOD,
                     ExifInterface.TAG_MAKE,
                     ExifInterface.TAG_MODEL,
                     ExifInterface.TAG_ORIENTATION,
