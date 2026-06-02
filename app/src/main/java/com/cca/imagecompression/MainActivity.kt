@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.SeekBar
@@ -644,7 +645,7 @@ class MainActivity : AppCompatActivity() {
             result = uri.path
             val cut = result?.lastIndexOf('/')
             if (cut != null && cut != -1) {
-                result = result.substring(cut + 1)
+                result = result?.substring(cut + 1)
             }
         }
         return result ?: "photo.jpg"
