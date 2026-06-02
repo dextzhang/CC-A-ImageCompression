@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <!-- 媒体库图片读取权限（Android 13+） -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- 允许读取图片中携带的 GPS 经纬度敏感地理位置信息（Android 10+） -->
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
 
     <application
         android:allowBackup="true"

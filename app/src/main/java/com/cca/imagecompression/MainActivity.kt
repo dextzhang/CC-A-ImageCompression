@@ -96,12 +96,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 动态存储权限请求启动器
+    // 动态存储与地理位置权限请求启动器
     private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            Toast.makeText(this, "权限已授予，正在拉起相册...", Toast.LENGTH_SHORT).show()
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val readPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+        val isReadGranted = permissions[readPermission] == true
+        val isLocationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissions[Manifest.permission.ACCESS_MEDIA_LOCATION] == true
+        } else {
+            true
+        }
+
+        if (isReadGranted) {
+            if (isLocationGranted) {
+                Toast.makeText(this, "照片与位置权限已授予，正在拉起相册...", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "照片读取已授权，但未授予位置信息权限，照片经纬度可能会丢失", Toast.LENGTH_LONG).show()
+            }
         } else {
             Toast.makeText(this, "未授予媒体库读取权限，部分照片可能无法恢复原始文件名与拍摄日期", Toast.LENGTH_LONG).show()
         }
@@ -109,16 +125,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissionAndLaunch() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val readPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_IMAGES
         } else {
             Manifest.permission.READ_EXTERNAL_STORAGE
         }
 
-        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
+        val locationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Manifest.permission.ACCESS_MEDIA_LOCATION
+        } else {
+            null
+        }
+
+        val permissionsToRequest = ArrayList<String>()
+        val isReadGranted = ContextCompat.checkSelfPermission(this, readPermission) == PackageManager.PERMISSION_GRANTED
+        val isLocationGranted = locationPermission == null || ContextCompat.checkSelfPermission(this, locationPermission) == PackageManager.PERMISSION_GRANTED
+
+        if (isReadGranted && isLocationGranted) {
             launchImageSelector()
         } else {
-            requestPermissionLauncher.launch(permission)
+            if (!isReadGranted) {
+                permissionsToRequest.add(readPermission)
+            }
+            if (!isLocationGranted && locationPermission != null) {
+                permissionsToRequest.add(locationPermission)
+            }
+            requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
         }
     }
 
