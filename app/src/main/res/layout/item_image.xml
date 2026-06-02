@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="115dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="#1A1A1A"
+    android:layout_margin="5dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Image Preview -->
+        <ImageView
+            android:id="@+id/imgItemPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="图片预览"/>
+
+        <!-- Top Mask (Original Size) -->
+        <TextView
+            android:id="@+id/txtItemOrgSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:layout_margin="6dp"
+            android:background="#99000000"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="4.5 MB"
+            android:textColor="#CCCCCC"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif-condensed"/>
+
+        <!-- Delete Button -->
+        <ImageButton
+            android:id="@+id/btnItemDelete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="4dp"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:contentDescription="删除"
+            app:tint="#FF5555"/>
+
+        <!-- Status Bottom Mask (State or Compressed Size) -->
+        <LinearLayout
+            android:id="@+id/layItemStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="#CC000000"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            android:gravity="center">
+
+            <!-- Loading Spinner -->
+            <ProgressBar
+                android:id="@+id/progressItem"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginEnd="4dp"
+                android:visibility="gone"
+                android:indeterminateTint="#FFD700"/>
+
+            <TextView
+                android:id="@+id/txtItemStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="等待中"
+                android:textColor="#FFD700"
+                android:textSize="10sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <!-- Success Check Icon Overlay -->
+        <ImageView
+            android:id="@+id/imgItemSuccess"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_centerInParent="true"
+            android:src="@android:drawable/checkbox_on_background"
+            app:tint="#4CAF50"
+            android:visibility="gone"
+            android:contentDescription="成功"/>
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

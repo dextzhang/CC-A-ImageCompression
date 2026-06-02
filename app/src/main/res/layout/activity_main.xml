@@ -3,277 +3,280 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_dark"
+    android:background="#0A0A0C"
     android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="18dp">
 
-        <!-- Header -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="超超无损相册压缩"
-            android:textColor="@color/text_primary"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="压缩照片并完整保留拍摄时间与 EXIF 信息"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:gravity="center"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- Preview Card -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="220dp"
-            app:cardCornerRadius="16dp"
-            app:cardBackgroundColor="@color/card_dark"
-            app:cardElevation="0dp"
-            android:layout_marginBottom="20dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:baselineAligned="false">
-
-                <!-- Original Preview -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="原图"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp"
-                        android:layout_marginBottom="6dp"/>
-
-                    <ImageView
-                        android:id="@+id/imgOriginal"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerInside"
-                        android:contentDescription="原图预览"
-                        android:src="@android:drawable/ic_menu_gallery"/>
-                </LinearLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="match_parent"
-                    android:background="@color/border_color"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginBottom="20dp"/>
-
-                <!-- Compressed Preview -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="压缩后"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp"
-                        android:layout_marginBottom="6dp"/>
-
-                    <ImageView
-                        android:id="@+id/imgCompressed"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerInside"
-                        android:contentDescription="压缩图预览"
-                        android:src="@android:drawable/ic_menu_gallery"/>
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
-
-        <!-- Stats Grid -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="20dp">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="@color/card_dark"
-                android:padding="12dp"
-                android:gravity="center"
-                android:layout_marginEnd="6dp">
-                <TextView
-                    android:id="@+id/txtOriginalSize"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="-- MB"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="原始大小"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="10sp"
-                    android:layout_marginTop="2dp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="@color/card_dark"
-                android:padding="12dp"
-                android:gravity="center"
-                android:layout_marginStart="6dp">
-                <TextView
-                    android:id="@+id/txtCompressedSize"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="-- MB"
-                    android:textColor="@color/gold_primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="压缩后大小"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="10sp"
-                    android:layout_marginTop="2dp"/>
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- Controls Card -->
+        <!-- Header Block -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@color/card_dark"
-            android:padding="20dp"
-            android:layout_marginBottom="24dp">
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="20dp">
 
-            <!-- Quality Control -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="4dp">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="压缩质量"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp"/>
-                <TextView
-                    android:id="@+id/txtQualityVal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="80%"
-                    android:textColor="@color/gold_primary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
+                android:text="超超极速批量压缩"
+                android:textColor="#FFD700"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"/>
 
-            <SeekBar
-                android:id="@+id/sbQuality"
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:max="100"
-                android:progress="80"
-                android:layout_marginBottom="16dp"
-                android:thumbTint="@color/gold_primary"
-                android:progressTint="@color/gold_primary"/>
-
-            <!-- Scale Control -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="4dp">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="尺寸缩放"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp"/>
-                <TextView
-                    android:id="@+id/txtScaleVal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="100%"
-                    android:textColor="@color/gold_primary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
-
-            <SeekBar
-                android:id="@+id/sbScale"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:progress="100"
-                android:thumbTint="@color/gold_primary"
-                android:progressTint="@color/gold_primary"/>
-
+                android:text="多图并行压缩 • 完美保留拍摄时间与完整 EXIF"
+                android:textColor="#88888E"
+                android:textSize="11sp"
+                android:layout_marginTop="4dp"/>
         </LinearLayout>
 
-        <!-- Actions -->
+        <!-- Main Photo Work Area -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardBackgroundColor="#141416"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp"
+                android:minHeight="280dp">
+
+                <!-- 1. Empty State Area (Visible when list is empty) -->
+                <LinearLayout
+                    android:id="@+id/layEmptyState"
+                    android:layout_width="match_parent"
+                    android:layout_height="260dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:visibility="visible">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📸"
+                        android:textSize="50sp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="相册工作区为空"
+                        android:textColor="#EAEAEA"
+                        android:textSize="15sp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="点击下方按钮，一次性导入多张照片"
+                        android:textColor="#66666F"
+                        android:textSize="11sp"
+                        android:layout_marginTop="6dp"/>
+                </LinearLayout>
+
+                <!-- 2. Grid RecyclerView (Visible when images are loaded) -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvImages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:visibility="gone"
+                    android:scrollbars="vertical"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Dynamic Overall Batch Progress Bar -->
+        <LinearLayout
+            android:id="@+id/layBatchProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#141416"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="6dp">
+                <TextView
+                    android:id="@+id/txtBatchProgressLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="正在批量压缩 (0/0)..."
+                    android:textColor="#EAEAEA"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
+                <TextView
+                    android:id="@+id/txtBatchPercent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textColor="#FFD700"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/pbBatchProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="#FFD700"
+                android:progressBackgroundTint="#333333"/>
+        </LinearLayout>
+
+        <!-- Compression Settings Control Panel -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardBackgroundColor="#141416"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Quality Slider -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="4dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="压缩画质"
+                        android:textColor="#CCCCCC"
+                        android:textSize="13sp"/>
+                    <TextView
+                        android:id="@+id/txtQualityVal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="80%"
+                        android:textColor="#FFD700"
+                        android:textSize="13sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
+
+                <SeekBar
+                    android:id="@+id/sbQuality"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="80"
+                    android:layout_marginBottom="16dp"
+                    android:thumbTint="#FFD700"
+                    android:progressTint="#FFD700"/>
+
+                <!-- Scale Slider -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="4dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="尺寸缩放"
+                        android:textColor="#CCCCCC"
+                        android:textSize="13sp"/>
+                    <TextView
+                        android:id="@+id/txtScaleVal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="100%"
+                        android:textColor="#FFD700"
+                        android:textSize="13sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
+
+                <SeekBar
+                    android:id="@+id/sbScale"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="100"
+                    android:thumbTint="#FFD700"
+                    android:progressTint="#FFD700"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Big Buttons Panel -->
         <Button
             android:id="@+id/btnSelect"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:text="🖼️ 选择相册照片"
-            android:textColor="@color/black"
-            android:backgroundTint="@color/gold_primary"
+            android:text="➕ 导入多张相册照片"
+            android:textColor="#000000"
+            android:backgroundTint="#FFD700"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             app:cornerRadius="14dp"
             android:layout_marginBottom="12dp"
-            android:textStyle="bold"/>
-
-        <Button
-            android:id="@+id/btnCompressSave"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:text="💾 压缩并保存至相册"
-            android:textColor="@color/text_primary"
-            android:backgroundTint="#2A2A2A"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            app:cornerRadius="14dp"
             android:textStyle="bold"
-            android:enabled="false"/>
+            android:textSize="14sp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnClear"
+                android:layout_width="100dp"
+                android:layout_height="52dp"
+                android:text="清空"
+                android:textColor="#FF5555"
+                android:backgroundTint="#251616"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                app:cornerRadius="14dp"
+                android:layout_marginEnd="8dp"
+                android:textStyle="bold"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/btnCompressSave"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:text="⚡ 开始批量压缩并保存"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#242428"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                app:cornerRadius="14dp"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:enabled="false"/>
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>
