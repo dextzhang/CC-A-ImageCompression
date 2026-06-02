@@ -21,13 +21,15 @@ data class CompressedImage(
     val originalSize: Long,
     var compressedSize: Long = 0,
     var status: Int = 0, // 0 = 等待中, 1 = 压缩中, 2 = 成功, 3 = 失败
-    var errorMsg: String? = null
+    var errorMsg: String? = null,
+    var tempCompressedFile: File? = null // 保存本地压缩后的临时文件引用
 )
 
 class ImageAdapter(
     private val context: Context,
     private val imageList: ArrayList<CompressedImage>,
-    private val onDeleteClickListener: (Int) -> Unit
+    private val onDeleteClickListener: (Int) -> Unit,
+    private val onItemClickListener: (Int) -> Unit
 ) : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -56,7 +58,12 @@ class ImageAdapter(
             onDeleteClickListener(holder.adapterPosition)
         }
 
-        // 3. 根据状态更新 UI 样式
+        // 3. 绑定整个 Item 的点击事件 (对比预览)
+        holder.itemView.setOnClickListener {
+            onItemClickListener(holder.adapterPosition)
+        }
+
+        // 4. 根据状态更新 UI 样式
         when (item.status) {
             0 -> { // 等待中
                 holder.progressItem.visibility = View.GONE
@@ -92,8 +99,7 @@ class ImageAdapter(
             }
         }
 
-        // 4. 安全解码加载预览图，避免 OOM
-        // 用一个线程或者轻量异步直接处理（这里做简单采样率缩放，防止大图撑爆）
+        // 5. 安全解码加载预览图，避免 OOM
         try {
             val previewBitmap = loadScaledBitmap(item.uri, 200)
             if (previewBitmap != null) {
