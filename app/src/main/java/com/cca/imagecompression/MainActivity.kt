@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txtBatchPercent: TextView
     private lateinit var pbBatchProgress: ProgressBar
 
-    // Summary panel
+    // 汇总报告控制板
     private lateinit var layStatsSummary: LinearLayout
     private lateinit var txtSummarySavings: TextView
 
@@ -49,13 +49,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sbQuality: SeekBar
     private lateinit var sbScale: SeekBar
 
-    // Preset Buttons
+    // 快速预设方案按钮
     private lateinit var btnPresetUltra: Button
     private lateinit var btnPresetHigh: Button
     private lateinit var btnPresetStandard: Button
     private lateinit var btnPresetMax: Button
 
-    // EXIF Switch
+    // EXIF 元数据保留开关
     private lateinit var swKeepExif: SwitchCompat
 
     private lateinit var btnSelect: Button
