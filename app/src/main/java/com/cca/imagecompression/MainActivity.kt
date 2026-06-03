@@ -321,7 +321,6 @@ class MainActivity : AppCompatActivity() {
         if (isCompressed) {
             isCompressed = false
             btnSaveToGallery.isEnabled = false
-            btnSaveToGallery.backgroundTintList = getColorStateList(android.R.color.darker_gray)
             layStatsSummary.visibility = View.GONE
             for (item in imageList) {
                 item.status = 0
@@ -357,23 +356,18 @@ class MainActivity : AppCompatActivity() {
             rvImages.visibility = View.GONE
             btnClear.visibility = View.GONE
             btnCompress.isEnabled = false
-            btnCompress.backgroundTintList = getColorStateList(android.R.color.darker_gray)
             btnSaveToGallery.isEnabled = false
-            btnSaveToGallery.backgroundTintList = getColorStateList(android.R.color.darker_gray)
         } else {
             layEmptyState.visibility = View.GONE
             rvImages.visibility = View.VISIBLE
             btnClear.visibility = View.VISIBLE
             btnCompress.isEnabled = true
-            btnCompress.backgroundTintList = getColorStateList(android.R.color.holo_orange_dark)
 
             val allDone = imageList.isNotEmpty() && imageList.all { it.status == 2 }
             if (allDone && isCompressed) {
                 btnSaveToGallery.isEnabled = true
-                btnSaveToGallery.backgroundTintList = getColorStateList(android.R.color.holo_green_dark)
             } else {
                 btnSaveToGallery.isEnabled = false
-                btnSaveToGallery.backgroundTintList = getColorStateList(android.R.color.darker_gray)
             }
         }
     }

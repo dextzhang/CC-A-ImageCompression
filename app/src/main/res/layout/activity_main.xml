@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0A0C"
+    android:background="@color/bg_dark"
     android:scrollbars="none">
 
     <LinearLayout
@@ -24,19 +24,19 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="超超极速批量压缩"
-                android:textColor="#FFD700"
-                android:textSize="24sp"
+                android:text="超图压缩"
+                android:textColor="@color/text_primary"
+                android:textSize="26sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.05"/>
+                android:letterSpacing="0.06"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="多图并行压缩 • 完美保留拍摄时间与完整 EXIF"
-                android:textColor="#88888E"
+                android:textColor="@color/text_secondary"
                 android:textSize="11sp"
-                android:layout_marginTop="4dp"/>
+                android:layout_marginTop="5dp"/>
         </LinearLayout>
 
         <!-- Work Area Header (Left: Import "+", Right: Clear "✕") -->
@@ -54,21 +54,21 @@
                 android:layout_height="36dp"
                 android:layout_alignParentStart="true"
                 android:text="➕ 导入照片"
-                android:textColor="#000000"
-                android:backgroundTint="#FFD700"
+                android:textColor="@color/text_primary"
+                android:background="@drawable/bg_glass_btn_gold"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:paddingHorizontal="14dp"
-                app:cornerRadius="8dp"/>
+                app:cornerRadius="14dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:text="照片工作队列"
-                android:textColor="#88888E"
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp"
                 android:textStyle="bold"/>
 
@@ -79,15 +79,15 @@
                 android:layout_height="36dp"
                 android:layout_alignParentEnd="true"
                 android:text="✕ 清空"
-                android:textColor="#FF5555"
-                android:backgroundTint="#251616"
+                android:textColor="#C29F9A"
+                android:background="@drawable/bg_glass_btn_red"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:paddingHorizontal="14dp"
                 android:visibility="gone"
-                app:cornerRadius="8dp"/>
+                app:cornerRadius="14dp"/>
         </RelativeLayout>
 
         <!-- Main Photo Work Area -->
@@ -95,7 +95,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="20dp"
-            app:cardBackgroundColor="#141416"
+            app:cardBackgroundColor="@android:color/transparent"
             app:cardElevation="0dp"
             android:layout_marginBottom="16dp">
 
@@ -104,6 +104,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="12dp"
+                android:background="@drawable/bg_glass_card"
                 android:minHeight="280dp">
 
                 <!-- 1. Empty State Area -->
@@ -126,7 +127,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="相册工作区为空"
-                        android:textColor="#EAEAEA"
+                        android:textColor="@color/text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold"/>
 
@@ -134,7 +135,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="点击左上角按钮导入照片，压缩后点击单项可预览对比"
-                        android:textColor="#66666F"
+                        android:textColor="@color/text_secondary"
                         android:textSize="11sp"
                         android:layout_marginTop="6dp"/>
                 </LinearLayout>
@@ -156,7 +157,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#141416"
+            android:background="@drawable/bg_glass_card"
             android:padding="14dp"
             android:layout_marginBottom="16dp"
             android:visibility="gone">
@@ -172,7 +173,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="正在批量压缩 (0/0)..."
-                    android:textColor="#EAEAEA"
+                    android:textColor="@color/text_primary"
                     android:textSize="12sp"
                     android:textStyle="bold"/>
                 <TextView
@@ -180,7 +181,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="0%"
-                    android:textColor="#FFD700"
+                    android:textColor="@color/gold_primary"
                     android:textSize="12sp"
                     android:textStyle="bold"/>
             </LinearLayout>
@@ -192,8 +193,8 @@
                 android:layout_height="8dp"
                 android:max="100"
                 android:progress="0"
-                android:progressTint="#FFD700"
-                android:progressBackgroundTint="#333333"/>
+                android:progressTint="@color/gold_primary"
+                android:progressBackgroundTint="@color/border_color"/>
         </LinearLayout>
 
         <!-- Summary Panel -->
@@ -202,7 +203,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#1F1F24"
+            android:background="@drawable/bg_glass_card"
             android:padding="14dp"
             android:layout_marginBottom="16dp"
             android:visibility="gone">
@@ -211,7 +212,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="📊 压缩汇总报告"
-                android:textColor="#FFD700"
+                android:textColor="@color/gold_primary"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="4dp"/>
@@ -221,7 +222,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="原始总大小: -- MB -> 压缩后: -- MB (节省 --%)"
-                android:textColor="#EAEAEA"
+                android:textColor="@color/text_primary"
                 android:textSize="12sp"/>
         </LinearLayout>
 
@@ -230,7 +231,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="20dp"
-            app:cardBackgroundColor="#141416"
+            app:cardBackgroundColor="@android:color/transparent"
             app:cardElevation="0dp"
             android:layout_marginBottom="20dp">
 
@@ -238,6 +239,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:background="@drawable/bg_glass_card"
                 android:padding="16dp">
 
                 <!-- Quality Slider -->
@@ -251,14 +253,14 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="压缩画质"
-                        android:textColor="#CCCCCC"
+                        android:textColor="@color/text_primary"
                         android:textSize="13sp"/>
                     <TextView
                         android:id="@+id/txtQualityVal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="80%"
-                        android:textColor="#FFD700"
+                        android:textColor="@color/gold_primary"
                         android:textSize="13sp"
                         android:textStyle="bold"/>
                 </LinearLayout>
@@ -270,8 +272,8 @@
                     android:max="100"
                     android:progress="80"
                     android:layout_marginBottom="16dp"
-                    android:thumbTint="#FFD700"
-                    android:progressTint="#FFD700"/>
+                    android:thumbTint="@color/gold_primary"
+                    android:progressTint="@color/gold_primary"/>
 
                 <!-- Scale Slider -->
                 <LinearLayout
@@ -284,14 +286,14 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="尺寸缩放"
-                        android:textColor="#CCCCCC"
+                        android:textColor="@color/text_primary"
                         android:textSize="13sp"/>
                     <TextView
                         android:id="@+id/txtScaleVal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="100%"
-                        android:textColor="#FFD700"
+                        android:textColor="@color/gold_primary"
                         android:textSize="13sp"
                         android:textStyle="bold"/>
                 </LinearLayout>
@@ -303,15 +305,15 @@
                     android:max="100"
                     android:progress="100"
                     android:layout_marginBottom="16dp"
-                    android:thumbTint="#FFD700"
-                    android:progressTint="#FFD700"/>
+                    android:thumbTint="@color/gold_primary"
+                    android:progressTint="@color/gold_primary"/>
 
                 <!-- Presets Button Group -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="快速预设方案"
-                    android:textColor="#888888"
+                    android:textColor="@color/text_secondary"
                     android:textSize="11sp"
                     android:layout_marginBottom="8dp"/>
 
@@ -328,8 +330,8 @@
                         android:layout_height="36dp"
                         android:layout_weight="1"
                         android:text="超清"
-                        android:textColor="#FFD700"
-                        android:backgroundTint="#242428"
+                        android:textColor="@color/text_primary"
+                        android:background="@drawable/bg_glass_btn_neutral"
                         android:textSize="11sp"
                         android:layout_marginEnd="4dp"
                         android:insetTop="0dp"
@@ -343,8 +345,8 @@
                         android:layout_height="36dp"
                         android:layout_weight="1"
                         android:text="高清"
-                        android:textColor="#FFD700"
-                        android:backgroundTint="#242428"
+                        android:textColor="@color/text_primary"
+                        android:background="@drawable/bg_glass_btn_neutral"
                         android:textSize="11sp"
                         android:layout_marginHorizontal="2dp"
                         android:insetTop="0dp"
@@ -358,8 +360,8 @@
                         android:layout_height="36dp"
                         android:layout_weight="1"
                         android:text="普通"
-                        android:textColor="#FFD700"
-                        android:backgroundTint="#242428"
+                        android:textColor="@color/text_primary"
+                        android:background="@drawable/bg_glass_btn_neutral"
                         android:textSize="11sp"
                         android:layout_marginHorizontal="2dp"
                         android:insetTop="0dp"
@@ -373,8 +375,8 @@
                         android:layout_height="36dp"
                         android:layout_weight="1"
                         android:text="极致"
-                        android:textColor="#FFD700"
-                        android:backgroundTint="#242428"
+                        android:textColor="@color/text_primary"
+                        android:background="@drawable/bg_glass_btn_neutral"
                         android:textSize="11sp"
                         android:layout_marginStart="4dp"
                         android:insetTop="0dp"
@@ -385,7 +387,8 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#222222"
+                    android:background="@color/border_color"
+                    android:layout_bottom="8dp"
                     android:layout_marginBottom="8dp"/>
 
                 <!-- Keep EXIF Toggle Switch -->
@@ -400,7 +403,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="保留 EXIF 元数据 (拍摄时间、GPS地点、相机等)"
-                        android:textColor="#CCCCCC"
+                        android:textColor="@color/text_primary"
                         android:textSize="12sp"/>
 
                     <androidx.appcompat.widget.SwitchCompat
@@ -408,8 +411,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:checked="true"
-                        app:thumbTint="#FFD700"
-                        app:trackTint="#665000"/>
+                        app:thumbTint="@color/gold_primary"
+                        app:trackTint="@color/gold_accent"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -421,8 +424,8 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:text="⚡ 开始批量压缩"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#242428"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/bg_glass_btn_gold"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             app:cornerRadius="14dp"
@@ -436,8 +439,8 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:text="💾 保存全部到相册"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#1F1F24"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/bg_glass_btn_green"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             app:cornerRadius="14dp"

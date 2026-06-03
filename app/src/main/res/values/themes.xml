@@ -4,6 +4,7 @@
         <item name="android:windowBackground">@color/bg_dark</item>
         <item name="android:statusBarColor">@color/bg_dark</item>
         <item name="android:navigationBarColor">@color/bg_dark</item>
+        <item name="android:windowLightStatusBar">true</item>
         <item name="colorPrimary">@color/gold_primary</item>
         <item name="colorAccent">@color/gold_accent</item>
     </style>

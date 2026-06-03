@@ -5,7 +5,7 @@
     android:layout_height="115dp"
     app:cardCornerRadius="14dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="#1A1A1A"
+    app:cardBackgroundColor="@color/card_dark"
     android:layout_margin="5dp">
 
     <RelativeLayout
@@ -28,11 +28,11 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true"
             android:layout_margin="6dp"
-            android:background="#99000000"
+            android:background="#663A3835"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp"
             android:text="4.5 MB"
-            android:textColor="#CCCCCC"
+            android:textColor="@color/white"
             android:textSize="9sp"
             android:fontFamily="sans-serif-condensed"/>
 
@@ -47,7 +47,7 @@
             android:background="@android:color/transparent"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:contentDescription="删除"
-            app:tint="#FF5555"/>
+            app:tint="#C29F9A"/>
 
         <!-- Status Bottom Mask (State or Compressed Size) -->
         <LinearLayout
@@ -55,7 +55,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:background="#CC000000"
+            android:background="#B33A3835"
             android:orientation="horizontal"
             android:padding="4dp"
             android:gravity="center">
@@ -68,14 +68,14 @@
                 android:layout_height="12dp"
                 android:layout_marginEnd="4dp"
                 android:visibility="gone"
-                android:indeterminateTint="#FFD700"/>
+                android:indeterminateTint="@color/gold_primary"/>
 
             <TextView
                 android:id="@+id/txtItemStatusText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="等待中"
-                android:textColor="#FFD700"
+                android:textColor="@color/gold_accent"
                 android:textSize="10sp"
                 android:textStyle="bold"/>
         </LinearLayout>
@@ -87,7 +87,7 @@
             android:layout_height="28dp"
             android:layout_centerInParent="true"
             android:src="@android:drawable/checkbox_on_background"
-            app:tint="#4CAF50"
+            app:tint="@color/gold_primary"
             android:visibility="gone"
             android:contentDescription="成功"/>
 
